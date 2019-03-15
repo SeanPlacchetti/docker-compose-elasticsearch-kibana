@@ -1,4 +1,4 @@
-# docker-compose-elasticsearch-kibana
+# kibana-dev-env
 
 ## Overview
 Docker Compose for Elasticsearch (6.5.4) and Kibana (Open Source 6.5.4) for development purposes.
