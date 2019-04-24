@@ -1,10 +1,12 @@
 version: '3.6'
 services:
   elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:6.5.4
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.0.0
     container_name: elasticsearch
     environment:
-      - node.name=es01
+      - node.name=elasticsearch
+      - discovery.seed_hosts=es02
+      - cluster.initial_master_nodes=elasticsearch,es02
       - cluster.name=docker-cluster
       - bootstrap.memory_lock=true
       - "ES_JAVA_OPTS=-Xms1024m -Xmx1024m"
@@ -17,12 +19,32 @@ services:
       - ALL
     privileged: true
     volumes:
-      - esdata:/usr/share/elasticsearch/data
+      - esdata01:/usr/share/elasticsearch/data
     ports:
       - 9200:9200
       - 9300:9300
+  es02:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.0.0
+    container_name: es02
+    environment:
+      - node.name=es02
+      - discovery.seed_hosts=elasticsearch
+      - cluster.initial_master_nodes=elasticsearch,es02
+      - cluster.name=docker-cluster
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms1024m -Xmx1024m"
+    ulimits:
+      nproc: 65535
+      memlock:
+        soft: -1
+        hard: -1
+    cap_add:
+      - ALL
+    privileged: true
+    volumes:
+      - esdata02:/usr/share/elasticsearch/data
   kibana:
-    image: docker.elastic.co/kibana/kibana-oss:6.5.4
+    image: docker.elastic.co/kibana/kibana-oss:7.0.0
     container_name: kibana
     environment:
       SERVER_NAME: localhost
@@ -37,4 +59,7 @@ services:
     cap_add:
       - ALL
 volumes:
-  esdata:
+  esdata01:
+    driver: local
+  esdata02:
+    driver: local
