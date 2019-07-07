@@ -1,7 +1,7 @@
 version: '3.6'
 services:
   elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:7.0.0
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.2.0
     container_name: elasticsearch
     environment:
       - node.name=elasticsearch
@@ -18,13 +18,15 @@ services:
     cap_add:
       - ALL
     privileged: true
+    networks:
+      - elasticnet
     volumes:
       - esdata01:/usr/share/elasticsearch/data
     ports:
       - 9200:9200
       - 9300:9300
   elasticsearch2:
-    image: docker.elastic.co/elasticsearch/elasticsearch:7.0.0
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.2.0
     container_name: elasticsearch2
     environment:
       - node.name=elasticsearch2
@@ -41,18 +43,27 @@ services:
     cap_add:
       - ALL
     privileged: true
+    networks:
+      - elasticnet
     volumes:
       - esdata02:/usr/share/elasticsearch/data
-  elasticsearch3:
-    image: docker.elastic.co/elasticsearch/elasticsearch:7.0.0
-    container_name: elasticsearch3
+  app-search:
+    image: docker.elastic.co/app-search/app-search:7.2.0
+    container_name: app_search
+    ports:
+      - 3002:3002
     environment:
-      - node.name=elasticsearch3
-      - discovery.seed_hosts=elasticsearch
-      - cluster.initial_master_nodes=elasticsearch
-      - cluster.name=docker-cluster
-      - bootstrap.memory_lock=true
-      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      elasticsearch.host: http://elasticsearch:9200/
+      allow_es_settings_modification: "true"
+    depends_on:
+      - elasticsearch
+    networks:
+      - elasticnet
+  logstash:
+    image: docker.elastic.co/logstash/logstash:7.2.0
+    container_name: logstash
+    environment:
+      - "ES_JAVA_OPTS=-Xms256m -Xmx256m"
     ulimits:
       nproc: 65535
       memlock:
@@ -60,31 +71,16 @@ services:
         hard: -1
     cap_add:
       - ALL
+    ports:
+      - "5000:5000"
+      - "9600:9600"
     privileged: true
-    volumes:
-      - esdata03:/usr/share/elasticsearch/data
-  elasticsearch4:
-    image: docker.elastic.co/elasticsearch/elasticsearch:7.0.0
-    container_name: elasticsearch4
-    environment:
-      - node.name=elasticsearch4
-      - discovery.seed_hosts=elasticsearch
-      - cluster.initial_master_nodes=elasticsearch
-      - cluster.name=docker-cluster
-      - bootstrap.memory_lock=true
-      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
-    ulimits:
-      nproc: 65535
-      memlock:
-        soft: -1
-        hard: -1
-    cap_add:
-      - ALL
-    privileged: true
-    volumes:
-      - esdata04:/usr/share/elasticsearch/data
+    networks:
+      - elasticnet
+    depends_on:
+      - elasticsearch
   kibana:
-    image: docker.elastic.co/kibana/kibana-oss:7.0.0
+    image: docker.elastic.co/kibana/kibana-oss:7.2.0
     container_name: kibana
     environment:
       SERVER_NAME: localhost
@@ -98,12 +94,12 @@ services:
         hard: -1
     cap_add:
       - ALL
+    networks:
+      - elasticnet
+    depends_on:
+      - elasticsearch
+networks:
+  elasticnet:
 volumes:
   esdata01:
-    driver: local
   esdata02:
-    driver: local
-  esdata03:
-    driver: local
-  esdata04:
-    driver: local
