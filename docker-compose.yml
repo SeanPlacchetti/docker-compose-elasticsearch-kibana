@@ -1,4 +1,4 @@
-version: '3.6'
+version: '3'
 services:
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:7.2.0
@@ -49,7 +49,7 @@ services:
       - esdata02:/usr/share/elasticsearch/data
   app-search:
     image: docker.elastic.co/app-search/app-search:7.2.0
-    container_name: app_search
+    container_name: appsearch
     ports:
       - 3002:3002
     environment:
