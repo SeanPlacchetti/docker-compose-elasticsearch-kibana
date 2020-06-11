@@ -1,7 +1,7 @@
 version: '3'
 services:
   elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:7.2.0
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.7.1
     container_name: elasticsearch
     environment:
       - node.name=elasticsearch
@@ -26,7 +26,7 @@ services:
       - 9200:9200
       - 9300:9300
   elasticsearch2:
-    image: docker.elastic.co/elasticsearch/elasticsearch:7.2.0
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.7.1
     container_name: elasticsearch2
     environment:
       - node.name=elasticsearch2
@@ -48,7 +48,7 @@ services:
     volumes:
       - esdata02:/usr/share/elasticsearch/data
   app-search:
-    image: docker.elastic.co/app-search/app-search:7.2.0
+    image: docker.elastic.co/app-search/app-search:7.6.2
     container_name: appsearch
     ports:
       - 3002:3002
@@ -59,28 +59,8 @@ services:
       - elasticsearch
     networks:
       - elasticnet
-  logstash:
-    image: docker.elastic.co/logstash/logstash:7.2.0
-    container_name: logstash
-    environment:
-      - "ES_JAVA_OPTS=-Xms256m -Xmx256m"
-    ulimits:
-      nproc: 65535
-      memlock:
-        soft: -1
-        hard: -1
-    cap_add:
-      - ALL
-    ports:
-      - "5000:5000"
-      - "9600:9600"
-    privileged: true
-    networks:
-      - elasticnet
-    depends_on:
-      - elasticsearch
   kibana:
-    image: docker.elastic.co/kibana/kibana-oss:7.2.0
+    image: docker.elastic.co/kibana/kibana-oss:7.7.1
     container_name: kibana
     environment:
       SERVER_NAME: localhost
