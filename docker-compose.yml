@@ -1,11 +1,11 @@
 version: '3'
 services:
   elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:7.7.1
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.3.2
     container_name: elasticsearch
     environment:
       - node.name=elasticsearch
-      - discovery.seed_hosts=elasticsearch2
+      - discovery.seed_hosts=elasticsearch2,elasticsearch3
       - cluster.initial_master_nodes=elasticsearch
       - cluster.name=docker-cluster
       - bootstrap.memory_lock=true
@@ -26,11 +26,11 @@ services:
       - 9200:9200
       - 9300:9300
   elasticsearch2:
-    image: docker.elastic.co/elasticsearch/elasticsearch:7.7.1
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.3.2
     container_name: elasticsearch2
     environment:
       - node.name=elasticsearch2
-      - discovery.seed_hosts=elasticsearch
+      - discovery.seed_hosts=elasticsearch,elasticsearch3
       - cluster.initial_master_nodes=elasticsearch
       - cluster.name=docker-cluster
       - bootstrap.memory_lock=true
@@ -47,20 +47,30 @@ services:
       - elasticnet
     volumes:
       - esdata02:/usr/share/elasticsearch/data
-  app-search:
-    image: docker.elastic.co/app-search/app-search:7.6.2
-    container_name: appsearch
-    ports:
-      - 3002:3002
+  elasticsearch3:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.3.2
+    container_name: elasticsearch3
     environment:
-      elasticsearch.host: http://elasticsearch:9200/
-      allow_es_settings_modification: "true"
-    depends_on:
-      - elasticsearch
+      - node.name=elasticsearch3
+      - discovery.seed_hosts=elasticsearch,elasticsearch2
+      - cluster.initial_master_nodes=elasticsearch
+      - cluster.name=docker-cluster
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ulimits:
+      nproc: 65535
+      memlock:
+        soft: -1
+        hard: -1
+    cap_add:
+      - ALL
+    privileged: true
     networks:
       - elasticnet
+    volumes:
+      - esdata03:/usr/share/elasticsearch/data
   kibana:
-    image: docker.elastic.co/kibana/kibana-oss:7.7.1
+    image: docker.elastic.co/kibana/kibana-oss:8.3.2
     container_name: kibana
     environment:
       SERVER_NAME: localhost
@@ -83,3 +93,4 @@ networks:
 volumes:
   esdata01:
   esdata02:
+  esdata03:
